@@ -199,7 +199,7 @@ async function runIntake(scriptInput, isFilePath) {
     // Step 7 (post-folder) — Slack notification
     try {
         const episodeFolderLink = await (0, drive_1.getFolderWebLink)(driveClient, episodeFolderId);
-        await (0, slack_1.notifyPipelineStarted)(episode, episodeFolderLink);
+        await (0, slack_1.notifyPipelineStarted)(episode, episodeFolderLink, episodeFolderId);
         console.log(`💬 Slack notification sent`);
     }
     catch (err) {

@@ -297,7 +297,7 @@ function buildServer() {
             try {
                 const approvedLink = folders.approvedFolderId
                     ? await (0, drive_1.getFolderWebLink)(drive, folders.approvedFolderId) : '';
-                await (0, slack_1.notifyApprovalComplete)(episode, approvedCount, rejectedCount, approvedLink, rejectionLines.length > 0);
+                await (0, slack_1.notifyApprovalComplete)(episode, approvedCount, rejectedCount, approvedLink, rejectionLines.length > 0, folderId);
             }
             catch { /* non-fatal */ }
             res.json({
@@ -384,7 +384,7 @@ function buildServer() {
             (0, intake_1.saveState)(state);
             const approvedLink = await (0, drive_1.getFolderWebLink)(drive, state.approvedFolderDriveId);
             try {
-                await (0, slack_1.notifyApprovalComplete)(episode, approvedCount, rejectedCount, approvedLink, rejectionLines.length > 0);
+                await (0, slack_1.notifyApprovalComplete)(episode, approvedCount, rejectedCount, approvedLink, rejectionLines.length > 0, state.episodeFolderDriveId);
             }
             catch { /* */ }
             res.json({ success: true, approvedCount, rejectedCount, movedToApproved: moved, approvedFolderLink: approvedLink, hasRejectionNotes: rejectionLines.length > 0 });
