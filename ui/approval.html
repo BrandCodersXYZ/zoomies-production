@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zoomies — Shot Approval</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #0f0e0c;
+      --paper: #f5f2eb;
+      --paper-warm: #ede8dc;
+      --paper-mid: #e0dace;
+      --muted: #7a7570;
+      --accent-green: #1a6b3c;
+      --accent-green-light: #d4edda;
+      --accent-red: #8b1a1a;
+      --accent-red-light: #fde0e0;
+      --accent-amber: #8b5a00;
+      --accent-amber-light: #fff3cd;
+      --border: #c8c2b6;
+    }
+
+    html { font-size: 15px; }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 20px; }
+
+    .header-brand {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.25rem;
+      letter-spacing: 0.05em;
+    }
+
+    .header-back {
+      font-size: 0.75rem;
+      color: #888;
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: color 0.12s;
+    }
+    .header-back:hover { color: var(--paper); }
+
+    .header-meta {
+      font-size: 0.8rem;
+      color: #999;
+      text-align: right;
+    }
+
+    .header-meta strong {
+      color: var(--paper);
+      font-weight: 500;
+    }
+
+    /* ── Progress bar ── */
+    .progress-bar-wrap {
+      background: var(--ink);
+      padding: 0 32px 16px;
+      border-bottom: 1px solid #333;
+    }
+
+    .progress-track {
+      height: 4px;
+      background: #333;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--paper);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    .progress-label {
+      font-size: 0.72rem;
+      color: #888;
+      margin-top: 8px;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Episode meta ── */
+    .episode-meta {
+      padding: 28px 32px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--paper-warm);
+    }
+
+    .episode-show {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .episode-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .episode-logline {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 8px;
+      font-style: italic;
+      max-width: 700px;
+    }
+
+    .episode-stats {
+      display: flex;
+      gap: 24px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .stat strong {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    /* ── Main layout ── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+
+    /* ── Scene separator ── */
+    .scene-header {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+      margin-top: 32px;
+      margin-bottom: 16px;
+    }
+
+    .scene-header:first-child { border-top: none; margin-top: 0; }
+
+    .scene-beat {
+      font-size: 0.82rem;
+      color: var(--ink);
+      font-style: italic;
+      margin-bottom: 16px;
+    }
+
+    /* ── Shot card ── */
+    .shot-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 20px;
+      margin-bottom: 12px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .shot-card:hover { border-color: #aaa; }
+
+    .shot-card.approved {
+      border-color: var(--accent-green);
+      background: #f6fbf8;
+    }
+
+    .shot-card.rejected {
+      border-color: var(--accent-red);
+      background: #fdf8f8;
+    }
+
+    /* ── Frame preview ── */
+    .shot-frame {
+      width: 80px;
+      flex-shrink: 0;
+      border-radius: 3px;
+      overflow: hidden;
+      background: var(--paper-mid);
+      aspect-ratio: 9/16;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .shot-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .shot-frame-placeholder {
+      font-size: 0.6rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 6px;
+      line-height: 1.4;
+    }
+
+    .shot-card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .shot-id-block {
+      flex-shrink: 0;
+      min-width: 90px;
+    }
+
+    .shot-id {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .shot-angle {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-top: 3px;
+    }
+
+    .shot-duration {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .shot-body { flex: 1; min-width: 0; }
+
+    .shot-action {
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    .shot-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .tag {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 2px;
+      letter-spacing: 0.04em;
+      background: var(--paper-mid);
+      color: var(--ink);
+    }
+
+    .tag.emotion {
+      background: var(--paper-warm);
+      border: 1px solid var(--border);
+    }
+
+    .tag.character {
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .shot-dialogue {
+      font-size: 0.82rem;
+      font-style: italic;
+      color: var(--accent-amber);
+      border-left: 2px solid currentColor;
+      padding-left: 10px;
+      margin-top: 10px;
+      opacity: 0.9;
+    }
+
+    /* ── Approval controls ── */
+    .shot-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      flex-shrink: 0;
+      margin-left: 16px;
+      min-width: 140px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 3px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: all 0.12s;
+    }
+
+    .btn-approve {
+      background: white;
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+
+    .btn-approve:hover,
+    .btn-approve.active {
+      background: var(--accent-green);
+      color: white;
+    }
+
+    .btn-reject {
+      background: white;
+      border-color: var(--accent-red);
+      color: var(--accent-red);
+    }
+
+    .btn-reject:hover,
+    .btn-reject.active {
+      background: var(--accent-red);
+      color: white;
+    }
+
+    .status-badge {
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 2px;
+    }
+
+    .status-badge.pending {
+      background: var(--accent-amber-light);
+      color: var(--accent-amber);
+    }
+
+    .status-badge.approved {
+      background: var(--accent-green-light);
+      color: var(--accent-green);
+    }
+
+    .status-badge.rejected {
+      background: var(--accent-red-light);
+      color: var(--accent-red);
+    }
+
+    /* ── Audio player ── */
+    .shot-audio {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .audio-clip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--paper-warm);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 4px 8px;
+    }
+
+    .audio-char {
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      min-width: 64px;
+    }
+
+    .audio-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0 2px;
+      line-height: 1;
+      color: var(--ink);
+      transition: opacity 0.12s;
+    }
+    .audio-btn:hover { opacity: 0.6; }
+
+    .audio-progress {
+      width: 80px;
+      height: 3px;
+      background: var(--paper-mid);
+      border-radius: 2px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .audio-progress-fill {
+      height: 100%;
+      background: var(--ink);
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    /* ── Rejection feedback ── */
+    .rejection-field {
+      display: none;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--accent-red-light);
+    }
+
+    .rejection-field.visible { display: block; }
+
+    .rejection-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .rejection-angle {
+      flex-shrink: 0;
+    }
+
+    .rejection-angle label,
+    .rejection-notes-label {
+      font-size: 0.72rem;
+      color: var(--accent-red);
+      display: block;
+      margin-bottom: 5px;
+      letter-spacing: 0.04em;
+    }
+
+    .rejection-angle select {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      padding: 7px 10px;
+      border: 1px solid var(--accent-red);
+      border-radius: 3px;
+      background: white;
+      color: var(--ink);
+      outline: none;
+      cursor: pointer;
+      min-width: 160px;
+    }
+
+    .rejection-field textarea {
+      width: 100%;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      padding: 8px 10px;
+      border: 1px solid var(--accent-red);
+      border-radius: 3px;
+      background: white;
+      color: var(--ink);
+      resize: vertical;
+      min-height: 56px;
+      outline: none;
+    }
+
+    /* ── Footer submit ── */
+    .submit-footer {
+      position: sticky;
+      bottom: 0;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 2px solid #333;
+    }
+
+    .submit-stats {
+      font-size: 0.82rem;
+      color: #aaa;
+    }
+
+    .submit-stats .count-approved { color: #6fcf97; }
+    .submit-stats .count-rejected { color: #e57373; }
+    .submit-stats .count-pending { color: #f4d060; }
+
+    .btn-submit {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 12px 32px;
+      background: var(--paper);
+      color: var(--ink);
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .btn-submit:hover:not(:disabled) { opacity: 0.85; }
+
+    /* ── Success screen ── */
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 80px 32px;
+    }
+
+    .success-screen.visible { display: block; }
+
+    .success-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+
+    .success-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .success-detail {
+      font-size: 0.85rem;
+      color: var(--muted);
+      max-width: 480px;
+      margin: 0 auto 24px;
+    }
+
+    .success-link {
+      font-size: 0.82rem;
+      color: var(--ink);
+      text-decoration: underline;
+      word-break: break-all;
+    }
+
+    /* ── Loading ── */
+    .loading {
+      text-align: center;
+      padding: 80px 32px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="header-brand">ZOOMIES</div>
+    <a class="header-back" href="/">← All Episodes</a>
+  </div>
+  <div class="header-meta" id="header-meta">Loading...</div>
+</header>
+
+<div class="progress-bar-wrap">
+  <div class="progress-track">
+    <div class="progress-fill" id="progress-fill"></div>
+  </div>
+  <div class="progress-label" id="progress-label">0 of 0 shots reviewed</div>
+</div>
+
+<div id="app">
+  <div class="loading" id="loading">Loading episode data...</div>
+  <div id="episode-container" style="display:none;">
+    <div class="episode-meta" id="episode-meta"></div>
+    <main id="shots-container"></main>
+  </div>
+  <div class="success-screen" id="success-screen"></div>
+</div>
+
+<div class="submit-footer" id="submit-footer">
+  <div class="submit-stats" id="submit-stats">
+    <span class="count-approved" id="stat-approved">0 approved</span> /
+    <span class="count-rejected" id="stat-rejected">0 rejected</span> /
+    <span class="count-pending" id="stat-pending">0 pending</span>
+  </div>
+  <button class="btn-submit" id="btn-submit" disabled>Submit All</button>
+</div>
+
+<script>
+  const ANGLE_OPTIONS = [
+    { value: 'wide',            label: 'Wide shot' },
+    { value: 'medium-two',      label: 'Medium two shot' },
+    { value: 'medium-single',   label: 'Medium single' },
+    { value: 'close-up',        label: 'Close-up' },
+    { value: 'extreme-close-up',label: 'Extreme close-up' },
+    { value: 'over-shoulder',   label: 'Over-shoulder' },
+    { value: 'reaction',        label: 'Reaction' },
+    { value: 'insert',          label: 'Insert' },
+  ];
+
+  // Detect whether we're on /episode/:folderId or the legacy local route
+  const pathMatch = window.location.pathname.match(/^\/episode\/([^/]+)/);
+  const folderId = pathMatch ? pathMatch[1] : null;
+
+  const API_FETCH  = folderId ? `/api/episode/${folderId}`  : '/api/episode';
+  const API_SUBMIT = folderId ? `/api/submit/${folderId}`   : '/api/submit';
+  const API_RERUN  = folderId ? `/api/rerun/${folderId}`    : null;
+
+  let episodeData = null;
+  let shotListFileId = null;
+  let decisions = {}; // shotId -> { status, notes, new_angle }
+
+  async function init() {
+    try {
+      const res = await fetch(API_FETCH);
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      episodeData = data.episode;
+      shotListFileId = data.shotListFileId;
+
+      // Pre-populate decisions from existing statuses
+      for (const shot of episodeData.shots) {
+        if (shot.approval_status && shot.approval_status !== 'PENDING') {
+          decisions[shot.id] = {
+            status: shot.approval_status,
+            notes: shot.rejection_notes || ''
+          };
+        }
+      }
+
+      render(data);
+    } catch (err) {
+      document.getElementById('loading').innerHTML =
+        `<strong>Error loading episode:</strong><br>${err.message}`;
+    }
+  }
+
+  function render(data) {
+    const { episode } = data;
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('episode-container').style.display = 'block';
+
+    // Header meta
+    document.getElementById('header-meta').innerHTML =
+      `<strong>S${episode.season}E${episode.episode}</strong> &nbsp;·&nbsp; ${episode.shots.length} shots`;
+
+    // Episode meta block
+    const showLabel = episode.show === 'catwives'
+      ? 'The Real Catwives of Beverly Hills'
+      : 'CSI: Bloodhound Bureau';
+    document.getElementById('episode-meta').innerHTML = `
+      <div class="episode-show">${showLabel} &nbsp;·&nbsp; S${episode.season}E${episode.episode}</div>
+      <div class="episode-title">${episode.title}</div>
+      <div class="episode-logline">${episode.logline}</div>
+      <div class="episode-stats">
+        <div class="stat"><strong>${episode.scenes.length}</strong> scenes</div>
+        <div class="stat"><strong>${episode.shots.length}</strong> shots</div>
+        <div class="stat"><strong>${episode.characters.join(', ')}</strong></div>
+      </div>
+    `;
+
+    // Build scene map
+    const sceneMap = {};
+    for (const scene of episode.scenes) sceneMap[scene.id] = scene;
+
+    // Render shots grouped by scene
+    const container = document.getElementById('shots-container');
+    container.innerHTML = '';
+    let currentScene = null;
+
+    for (const shot of episode.shots) {
+      if (shot.scene_id !== currentScene) {
+        currentScene = shot.scene_id;
+        const scene = sceneMap[shot.scene_id];
+        const sceneEl = document.createElement('div');
+        sceneEl.className = 'scene-header';
+        sceneEl.textContent = `${shot.scene_id}${scene ? ` — ${scene.location} (${scene.time})` : ''}`;
+        container.appendChild(sceneEl);
+
+        if (scene && scene.beat) {
+          const beatEl = document.createElement('div');
+          beatEl.className = 'scene-beat';
+          beatEl.textContent = scene.beat;
+          container.appendChild(beatEl);
+        }
+      }
+
+      container.appendChild(buildShotCard(shot));
+    }
+
+    updateProgress();
+  }
+
+  function buildAngleSelect(shotId, currentAngle) {
+    const opts = ANGLE_OPTIONS.map(o =>
+      `<option value="${o.value}" ${o.value === currentAngle ? 'selected' : ''}>${o.label}</option>`
+    ).join('');
+    return `<select id="angle-${shotId}" onchange="updateAngle('${shotId}', this.value)">
+      ${opts}
+    </select>`;
+  }
+
+  function buildAudioPlayers(shot) {
+    if (!shot.vo_files || shot.vo_files.length === 0) return '';
+    const clips = shot.vo_files.map(vo => `
+      <div class="audio-clip" id="audioclip-${shot.id}-${vo.character}">
+        <span class="audio-char">${vo.character}</span>
+        <button class="audio-btn" onclick="toggleAudio('${shot.id}', '${vo.character}', '${vo.drive_file_id}')" id="playbtn-${shot.id}-${vo.character}">▶</button>
+        <div class="audio-progress" onclick="seekAudio('${shot.id}', '${vo.character}', event)">
+          <div class="audio-progress-fill" id="prog-${shot.id}-${vo.character}"></div>
+        </div>
+      </div>`).join('');
+    return `<div class="shot-audio">${clips}</div>`;
+  }
+
+  function buildShotCard(shot) {
+    const existing = decisions[shot.id];
+    const status = existing ? existing.status : 'PENDING';
+
+    const card = document.createElement('div');
+    card.className = `shot-card ${status.toLowerCase()}`;
+    card.id = `card-${shot.id}`;
+
+    const charactersHtml = (shot.characters || [])
+      .map(c => `<span class="tag character">${c}</span>`).join('');
+
+    const dialogueHtml = shot.dialogue_line
+      ? `<div class="shot-dialogue">"${escapeHtml(shot.dialogue_line)}"</div>`
+      : '';
+
+    const rejectionVisible = status === 'REJECTED' ? 'visible' : '';
+    const rejectionNotes = existing && existing.notes ? existing.notes : '';
+    const currentAngle = (existing && existing.new_angle) ? existing.new_angle : shot.angle;
+
+    const frameHtml = shot.image_drive_file_id
+      ? `<div class="shot-frame"><img src="/api/image/${shot.image_drive_file_id}" loading="lazy" alt="${shot.id} frame" /></div>`
+      : `<div class="shot-frame"><div class="shot-frame-placeholder">no frame yet</div></div>`;
+
+    card.innerHTML = `
+      <div class="shot-card-top">
+        ${frameHtml}
+        <div class="shot-id-block">
+          <div class="shot-id">${shot.id}</div>
+          <div class="shot-angle">${shot.angle}</div>
+          <div class="shot-duration">${shot.duration_seconds}s</div>
+        </div>
+        <div class="shot-body">
+          <div class="shot-action">${escapeHtml(shot.action)}</div>
+          <div class="shot-tags">
+            <span class="tag emotion">${escapeHtml(shot.emotion)}</span>
+            ${charactersHtml}
+          </div>
+          ${dialogueHtml}
+          ${buildAudioPlayers(shot)}
+        </div>
+        <div class="shot-controls">
+          <span class="status-badge ${status.toLowerCase()}" id="badge-${shot.id}">${status}</span>
+          <div class="btn-group">
+            <button class="btn btn-approve ${status === 'APPROVED' ? 'active' : ''}"
+              onclick="decide('${shot.id}', 'APPROVED')" title="Approve">✓ Approve</button>
+            <button class="btn btn-reject ${status === 'REJECTED' ? 'active' : ''}"
+              onclick="decide('${shot.id}', 'REJECTED')" title="Reject">✗ Reject</button>
+          </div>
+        </div>
+      </div>
+      <div class="rejection-field ${rejectionVisible}" id="rejection-${shot.id}">
+        <div class="rejection-row">
+          <div class="rejection-angle">
+            <label class="rejection-notes-label">Change angle to</label>
+            ${buildAngleSelect(shot.id, currentAngle)}
+          </div>
+          <div style="flex:1">
+            <label class="rejection-notes-label">Feedback notes (optional)</label>
+            <textarea
+              id="notes-${shot.id}"
+              placeholder="e.g. Wrong character in frame. Needs tighter framing on Kitty."
+              oninput="updateNotes('${shot.id}', this.value)"
+            >${rejectionNotes}</textarea>
+          </div>
+        </div>
+      </div>
+    `;
+
+    return card;
+  }
+
+  // ── Audio playback ────────────────────────────────────────────────────────────
+  const audioRegistry = {}; // key: `${shotId}-${character}` -> HTMLAudioElement
+
+  function toggleAudio(shotId, character, fileId) {
+    const key = `${shotId}-${character}`;
+    let audio = audioRegistry[key];
+
+    if (!audio) {
+      audio = new Audio(`/api/audio/${fileId}`);
+      audioRegistry[key] = audio;
+      audio.addEventListener('timeupdate', () => {
+        const pct = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
+        const fill = document.getElementById(`prog-${shotId}-${character}`);
+        if (fill) fill.style.width = `${pct}%`;
+      });
+      audio.addEventListener('ended', () => {
+        const btn = document.getElementById(`playbtn-${shotId}-${character}`);
+        if (btn) btn.textContent = '▶';
+        const fill = document.getElementById(`prog-${shotId}-${character}`);
+        if (fill) fill.style.width = '0%';
+      });
+    }
+
+    if (audio.paused) {
+      // Pause all others first
+      Object.entries(audioRegistry).forEach(([k, a]) => {
+        if (k !== key && !a.paused) {
+          a.pause();
+          const parts = k.split('-');
+          const btn = document.getElementById(`playbtn-${parts[0]}-${parts[1]}`);
+          if (btn) btn.textContent = '▶';
+        }
+      });
+      audio.play();
+      const btn = document.getElementById(`playbtn-${shotId}-${character}`);
+      if (btn) btn.textContent = '⏸';
+    } else {
+      audio.pause();
+      const btn = document.getElementById(`playbtn-${shotId}-${character}`);
+      if (btn) btn.textContent = '▶';
+    }
+  }
+
+  function seekAudio(shotId, character, event) {
+    const key = `${shotId}-${character}`;
+    const audio = audioRegistry[key];
+    if (!audio || !audio.duration) return;
+    const bar = event.currentTarget;
+    const pct = event.offsetX / bar.offsetWidth;
+    audio.currentTime = pct * audio.duration;
+  }
+
+  // ── Decisions ─────────────────────────────────────────────────────────────────
+
+  function decide(shotId, status) {
+    const prev = decisions[shotId];
+    const shotData = episodeData?.shots.find(s => s.id === shotId);
+    decisions[shotId] = {
+      status,
+      notes: prev ? prev.notes : '',
+      new_angle: prev?.new_angle ?? (shotData?.angle || ''),
+    };
+
+    const card = document.getElementById(`card-${shotId}`);
+    card.className = `shot-card ${status.toLowerCase()}`;
+
+    const badge = document.getElementById(`badge-${shotId}`);
+    badge.className = `status-badge ${status.toLowerCase()}`;
+    badge.textContent = status;
+
+    const approveBtn = card.querySelector('.btn-approve');
+    const rejectBtn = card.querySelector('.btn-reject');
+    approveBtn.classList.toggle('active', status === 'APPROVED');
+    rejectBtn.classList.toggle('active', status === 'REJECTED');
+
+    const rejectionField = document.getElementById(`rejection-${shotId}`);
+    rejectionField.classList.toggle('visible', status === 'REJECTED');
+
+    updateProgress();
+  }
+
+  function updateNotes(shotId, value) {
+    if (decisions[shotId]) decisions[shotId].notes = value;
+  }
+
+  function updateAngle(shotId, value) {
+    if (decisions[shotId]) decisions[shotId].new_angle = value;
+  }
+
+  function updateProgress() {
+    const total = episodeData ? episodeData.shots.length : 0;
+    const reviewed = Object.keys(decisions).length;
+    const approved = Object.values(decisions).filter(d => d.status === 'APPROVED').length;
+    const rejected = Object.values(decisions).filter(d => d.status === 'REJECTED').length;
+    const pending = total - reviewed;
+
+    const pct = total > 0 ? (reviewed / total) * 100 : 0;
+    document.getElementById('progress-fill').style.width = `${pct}%`;
+    document.getElementById('progress-label').textContent = `${reviewed} of ${total} shots reviewed`;
+
+    document.getElementById('stat-approved').textContent = `${approved} approved`;
+    document.getElementById('stat-rejected').textContent = `${rejected} rejected`;
+    document.getElementById('stat-pending').textContent = `${pending} pending`;
+
+    document.getElementById('btn-submit').disabled = reviewed < total;
+  }
+
+  async function submitAll() {
+    const submitBtn = document.getElementById('btn-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+
+    const shots = Object.entries(decisions).map(([id, dec]) => ({
+      id,
+      status: dec.status,
+      rejection_notes: dec.notes || undefined,
+      new_angle: dec.new_angle || undefined,
+    }));
+
+    const body = { shots };
+    if (shotListFileId) body.shotListFileId = shotListFileId;
+
+    try {
+      const res = await fetch(API_SUBMIT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || res.statusText);
+      }
+
+      showSuccess(await res.json());
+    } catch (err) {
+      alert(`Submission failed: ${err.message}`);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit All';
+    }
+  }
+
+  function showSuccess(result) {
+    document.getElementById('episode-container').style.display = 'none';
+    document.getElementById('submit-footer').style.display = 'none';
+    document.getElementById('progress-bar-wrap').style.display = 'none';
+
+    // Build list of rejected shots with their feedback for the rerun button
+    const rejectedShots = Object.entries(decisions)
+      .filter(([, dec]) => dec.status === 'REJECTED')
+      .map(([id, dec]) => ({ id, new_angle: dec.new_angle || undefined, rejection_notes: dec.notes || undefined }));
+
+    const rerunBlock = API_RERUN && rejectedShots.length > 0 ? `
+      <div id="rerun-section" style="margin-top:28px; padding-top:28px; border-top:1px solid var(--border);">
+        <div style="font-size:0.82rem; color:var(--muted); margin-bottom:14px;">
+          ${rejectedShots.length} rejected shot${rejectedShots.length !== 1 ? 's' : ''} ready to regenerate with your feedback.
+        </div>
+        <button class="btn-submit" id="btn-rerun" onclick="rerunRejected()" style="background:var(--ink);color:var(--paper);padding:12px 28px;">
+          Regenerate ${rejectedShots.length} shot${rejectedShots.length !== 1 ? 's' : ''}
+        </button>
+        <div id="rerun-status" style="margin-top:14px; font-size:0.78rem; color:var(--muted);"></div>
+      </div>` : '';
+
+    const screen = document.getElementById('success-screen');
+    screen.innerHTML = `
+      <div class="success-icon">✅</div>
+      <div class="success-title">Shots submitted</div>
+      <div class="success-detail">
+        <strong>${result.approvedCount}</strong> approved &nbsp;·&nbsp;
+        <strong>${result.rejectedCount}</strong> rejected
+        ${result.hasRejectionNotes ? '<br>Feedback saved to Working folder.' : ''}
+        <br><br>
+        Approved prompts moved to _APPROVED folder.
+      </div>
+      ${result.approvedFolderLink ? `
+        <a class="success-link" href="${result.approvedFolderLink}" target="_blank" rel="noopener">
+          Open _APPROVED folder →
+        </a>` : ''}
+      ${rerunBlock}
+      <div style="margin-top:24px;">
+        <a href="/" style="font-size:0.78rem; color:var(--muted); text-decoration:underline;">← Back to all episodes</a>
+      </div>
+    `;
+    screen.classList.add('visible');
+  }
+
+  async function rerunRejected() {
+    if (!API_RERUN || !shotListFileId) return;
+
+    const btn = document.getElementById('btn-rerun');
+    const status = document.getElementById('rerun-status');
+    btn.disabled = true;
+    btn.textContent = 'Regenerating...';
+    status.textContent = 'Rebuilding prompts and generating new frames — this may take a few minutes.';
+
+    const rejectedShots = Object.entries(decisions)
+      .filter(([, dec]) => dec.status === 'REJECTED')
+      .map(([id, dec]) => ({ id, new_angle: dec.new_angle || undefined, rejection_notes: dec.notes || undefined }));
+
+    try {
+      const res = await fetch(API_RERUN, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shotUpdates: rejectedShots, shotListFileId }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || res.statusText);
+      }
+
+      const result = await res.json();
+      const n = result.updated?.length ?? 0;
+
+      document.getElementById('rerun-section').innerHTML = `
+        <div style="color:var(--accent-green); font-size:0.85rem; margin-top:4px;">
+          ✓ ${n} shot${n !== 1 ? 's' : ''} regenerated. Reload to review the new frames.
+        </div>
+        <br>
+        <a href="${window.location.href}" style="font-size:0.82rem; color:var(--ink); text-decoration:underline;">
+          Review updated shots →
+        </a>
+      `;
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = `Regenerate ${rejectedShots.length} shot${rejectedShots.length !== 1 ? 's' : ''}`;
+      status.textContent = `Error: ${err.message}`;
+      status.style.color = 'var(--accent-red)';
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  document.getElementById('btn-submit').addEventListener('click', submitAll);
+  init();
+</script>
+</body>
+</html>

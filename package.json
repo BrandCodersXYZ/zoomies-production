@@ -1,0 +1,39 @@
+{
+  "name": "zoomies-pipeline",
+  "version": "1.0.0",
+  "description": "Zoomies AI Animation Studio — Production Pipeline",
+  "main": "dist/index.js",
+  "bin": {
+    "zoomies": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@google/genai": "^1.49.0",
+    "@slack/web-api": "^7.0.0",
+    "@types/cookie-parser": "^1.4.10",
+    "axios": "^1.7.0",
+    "commander": "^12.0.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.4.0",
+    "express": "^4.18.0",
+    "form-data": "^4.0.0",
+    "googleapis": "^144.0.0",
+    "open": "^10.1.0",
+    "pdf-parse": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.0",
+    "@types/node": "^20.0.0",
+    "@types/pdf-parse": "^1.1.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
